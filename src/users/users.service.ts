@@ -1,17 +1,15 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersRequestDTO } from './dto';
-import { InjectModel } from '@nestjs/mongoose';
-import { User } from './users.schema';
-import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
+import { UserRepository } from './users.repository';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+  constructor(private readonly userRepository: UserRepository) {}
 
   async login(body: UsersRequestDTO) {
     const { email, password } = body;
-    const user = await this.userModel.findOne({ email });
+    const user = await this.userRepository.findByEmail(email);
 
     if (!user) {
       throw new UnauthorizedException('존재하지 않는 이메일입니다.');
@@ -28,15 +26,15 @@ export class UsersService {
 
   async signUp(body: UsersRequestDTO) {
     const { email, password } = body;
-    const isUserExitst = await this.userModel.exists({ email });
+    const isUserExist = await this.userRepository.existsByEmail(email);
 
-    if (isUserExitst) {
+    if (isUserExist) {
       throw new UnauthorizedException('이미 존재하는 이메일입니다.');
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await this.userModel.create({
+    const user = await this.userRepository.create({
       email,
       password: hashedPassword,
     });
