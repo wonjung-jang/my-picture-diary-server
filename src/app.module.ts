@@ -4,7 +4,10 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { UserModule } from './user/user.module';
 import * as Joi from 'joi';
+import { User } from './user/entities/user.entity';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -18,6 +21,9 @@ import * as Joi from 'joi';
         DB_USERNAME: Joi.string().required(),
         DB_PASSWORD: Joi.string().required(),
         DB_DATABASE: Joi.string().required(),
+        HASH_ROUNDS: Joi.number().required(),
+        ACCESS_TOKEN_SECRET: Joi.string().required(),
+        REFRESH_TOKEN_SECRET: Joi.string().required(),
       }),
     }),
     TypeOrmModule.forRootAsync({
@@ -28,12 +34,13 @@ import * as Joi from 'joi';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_DATABASE'),
-        entities: [],
+        entities: [User],
         synchronize: true,
       }),
       inject: [ConfigService],
     }),
     AuthModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],
