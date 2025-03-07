@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
+import { LoginUserDto } from 'src/user/dto/login-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -55,17 +56,15 @@ export class AuthService {
     return this.userRepository.findOne({ where: { email } });
   }
 
-  async login(rawToken: string) {
-    const { email, password } = this.parseBasicToken(rawToken);
+  async login(loginUserDto: LoginUserDto) {
+    const { email, password } = loginUserDto;
 
     const user = await this.userRepository.findOne({ where: { email } });
-
     if (!user) {
       throw new BadRequestException('잘못된 사용자 정보입니다.');
     }
 
     const passOk = await bcrypt.compare(password, user.password);
-
     if (!passOk) {
       throw new BadRequestException('잘못된 사용자 정보입니다.');
     }
@@ -77,7 +76,7 @@ export class AuthService {
       'ACCESS_TOKEN_SECRET',
     );
 
-    return {
+    const tokens = {
       refreshToken: await this.jwtService.signAsync(
         {
           sub: user.id,
@@ -101,5 +100,7 @@ export class AuthService {
         },
       ),
     };
+
+    return tokens;
   }
 }
