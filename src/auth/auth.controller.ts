@@ -34,4 +34,10 @@ export class AuthController {
 
     return { accessToken };
   }
+
+  @Post('/send/code')
+  async sendCode(@Body() { email }: { email: string }) {
+    const authEmail = await this.authService.sendCodeEmail(email);
+    return authEmail;
+  }
 }

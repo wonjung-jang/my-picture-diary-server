@@ -40,9 +40,8 @@ export class AuthService {
   async signup(createUserDto: CreateUserDto) {
     const { email, name, password } = createUserDto;
 
-    const user = await this.userRepository.findOne({ where: { email } });
-
-    if (user) {
+    const isDuplicate = await this.isDuplicateEmail(email);
+    if (isDuplicate) {
       throw new BadRequestException('이미 가입한 이메일입니다.');
     }
 
@@ -102,5 +101,18 @@ export class AuthService {
     };
 
     return tokens;
+  }
+
+  async isDuplicateEmail(email: string) {
+    const user = await this.userRepository.findOne({ where: { email } });
+    return !!user;
+  }
+
+  async sendCodeEmail(email: string) {
+    const isDuplicate = await this.isDuplicateEmail(email);
+    if (isDuplicate) {
+      throw new BadRequestException('이미 등록된 이메일입니다.');
+    }
+    return email;
   }
 }
