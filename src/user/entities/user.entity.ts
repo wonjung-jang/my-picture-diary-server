@@ -13,7 +13,7 @@ export class User extends BaseTable {
   id: number;
 
   @Column({ unique: true })
-  email: string;
+  userId: string;
 
   @Column()
   @Exclude({

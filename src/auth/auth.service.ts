@@ -32,33 +32,30 @@ export class AuthService {
       throw new BadRequestException('잘못된 토큰값입니다.');
     }
 
-    const [email, password] = tokenSplit;
+    const [userId, password] = tokenSplit;
 
-    return { email, password };
+    return { userId, password };
   }
 
   async signup(createUserDto: CreateUserDto) {
-    const { email, name, password } = createUserDto;
+    const { userId, name, password } = createUserDto;
 
-    const isDuplicate = await this.isDuplicateEmail(email);
-    if (isDuplicate) {
-      throw new BadRequestException('이미 가입한 이메일입니다.');
-    }
+    await this.isDuplicateId(userId);
 
     const hash = await bcrypt.hash(
       password,
       this.configService.get<number>('HASH_ROUNDS') as number,
     );
 
-    await this.userRepository.save({ email, name, password: hash });
+    await this.userRepository.save({ userId, name, password: hash });
 
-    return this.userRepository.findOne({ where: { email } });
+    return this.userRepository.findOne({ where: { userId } });
   }
 
   async login(loginUserDto: LoginUserDto) {
-    const { email, password } = loginUserDto;
+    const { userId, password } = loginUserDto;
 
-    const user = await this.userRepository.findOne({ where: { email } });
+    const user = await this.userRepository.findOne({ where: { userId } });
     if (!user) {
       throw new BadRequestException('잘못된 사용자 정보입니다.');
     }
@@ -103,16 +100,11 @@ export class AuthService {
     return tokens;
   }
 
-  async isDuplicateEmail(email: string) {
-    const user = await this.userRepository.findOne({ where: { email } });
-    return !!user;
-  }
-
-  async sendCodeEmail(email: string) {
-    const isDuplicate = await this.isDuplicateEmail(email);
-    if (isDuplicate) {
-      throw new BadRequestException('이미 등록된 이메일입니다.');
+  async isDuplicateId(userId: string) {
+    const user = await this.userRepository.findOne({ where: { userId } });
+    if (user) {
+      throw new BadRequestException('이미 등록된 아이디입니다.');
     }
-    return email;
+    return userId;
   }
 }

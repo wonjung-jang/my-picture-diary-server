@@ -36,8 +36,7 @@ export class AuthController {
   }
 
   @Post('/send/code')
-  async sendCode(@Body() { email }: { email: string }) {
-    const authEmail = await this.authService.sendCodeEmail(email);
-    return authEmail;
+  async sendCode(@Body() { userId }: { userId: string }) {
+    return await this.authService.isDuplicateId(userId);
   }
 }
