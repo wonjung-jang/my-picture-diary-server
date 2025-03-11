@@ -35,8 +35,9 @@ export class AuthController {
     return { accessToken };
   }
 
-  @Post('/send/code')
-  async sendCode(@Body() { userId }: { userId: string }) {
-    return await this.authService.isDuplicateId(userId);
+  @Post('/duplicate')
+  async isDuplicate(@Body() { userId }: { userId: string }) {
+    const availableId = await this.authService.isDuplicateId(userId);
+    return { userId: availableId };
   }
 }
